@@ -1,9 +1,9 @@
 /* Offline cache is isolated by repository path, including on shared GitHub Pages origins. */
 const SCOPE = new URL(self.registration.scope).pathname;
 const PREFIX = 'fojing:' + SCOPE + ':';
-const VERSION = '7bbe0e921f5627';
+const VERSION = '4acb7abb900497';
 const CACHE = PREFIX + VERSION;
-const ASSETS = ['./','./index.html','./style.css','./library.css','./config.js','./app.js','./book.js','./manifest.webmanifest','./icon-192.png','./icon-512.png','./icon-maskable-512.png','./apple-touch-icon.png','./favicon-32.png'];
+const ASSETS = ['./','./index.html','./style.css','./library.css','./config.js','./app.js','./book.js','./foundations.js','./manifest.webmanifest','./icon-192.png','./icon-512.png','./icon-maskable-512.png','./apple-touch-icon.png','./favicon-32.png'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()));
 });

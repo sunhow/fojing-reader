@@ -4,7 +4,7 @@ from pathlib import Path
 import hashlib,shutil,re,runpy
 ROOT=Path(__file__).resolve().parent
 runpy.run_path(str(ROOT/'build.py'),run_name='__main__')
-assets=['index.html','manifest.webmanifest','style.css','library.css','config.js','app.js','book.js','icon-192.png','icon-512.png','icon-maskable-512.png','apple-touch-icon.png','favicon-32.png']
+assets=['index.html','manifest.webmanifest','style.css','library.css','config.js','app.js','book.js','foundations.js','icon-192.png','icon-512.png','icon-maskable-512.png','apple-touch-icon.png','favicon-32.png']
 paths=[]
 for item in assets:
  p=ROOT/item
