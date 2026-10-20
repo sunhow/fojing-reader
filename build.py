@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Validate source coverage and build all eight full-text/selected reading editions and foundation guides."""
+"""Validate nine reading editions and foundation guides, preserving stable route indices."""
 from pathlib import Path
 import json,hashlib
 ROOT=Path(__file__).resolve().parent
 source=json.loads((ROOT/'library-source.json').read_text())
 manifest=json.loads((ROOT/'source-manifest.json').read_text())
 glossary=json.loads((ROOT/'glossary.json').read_text())
-assert [b['slug'] for b in source]==['yijiao','shishan','heart','diamond','puxian','bada','faju','amituo']
-BOOK={'title':'佛经精读','chapters':[]}
+assert [b['slug'] for b in source]==['yijiao','shishan','heart','diamond','puxian','bada','faju','amituo','dizang']
+BOOK={'title':'佛经精读','readingOrder':[0,1,2,3,4,8,5,6,7],'chapters':[]}
 for b in source:
  m=manifest[b['slug']];assert len(b['paragraphs'])==m['count']
  assert [p['id'] for p in b['paragraphs']]==m['ids']
@@ -24,10 +24,13 @@ for b in source:
   corpus=''.join(p['orig'] for p in pairs)
   notes=[n for n in glossary if n['term'] in corpus]
   sec={'id':b['slug']+f'-s{si:02}','number':si,'title':title,'name':title,'intro':b['subtitle']+'。本节依原文顺序收录 '+str(len(pairs))+' 段，可在段落目录中直接跳转。','source':b['source'],'pairs':pairs,'notes':notes}
+  if b.get('sectionMetadata'):sec.update(b['sectionMetadata'][si-1])
   ch['sections'].append(sec)
  assert covered==m['ids'],b['slug']+' group coverage mismatch'
  BOOK['chapters'].append(ch)
-assert sum(len(s['pairs']) for c in BOOK['chapters'] for s in c['sections'])==206
+assert sum(len(s['pairs']) for c in BOOK['chapters'] for s in c['sections'])==359
+assert len({s['id'] for c in BOOK['chapters'] for s in c['sections']})==51
+assert [len(s['pairs']) for s in BOOK['chapters'][8]['sections']]==[16,4,10,20,6,19,8,16,13,12,5,15,9]
 assert '若以色见我' in source[3]['paragraphs'][25]['original']
 assert '佛说是经已' in source[3]['paragraphs'][-1]['original']
 assert sum(bool(p.get('verse')) for p in source[4]['paragraphs'])==62
@@ -44,4 +47,4 @@ for t in foundations:
  assert all(x in passagerefs for x in t['readings'])
  t['references']=[passagerefs[x] for x in t['readings']]
 (ROOT/'foundations.js').write_text('window.FOUNDATIONS = '+json.dumps(foundations,ensure_ascii=False,separators=(',',':'))+';\n')
-print('Validated 8 books, 38 sections, 206 passages, 12 linked foundation guides and source hashes.')
+print('Validated 9 books, 51 sections, 359 passages, 12 linked foundation guides and source hashes.')
