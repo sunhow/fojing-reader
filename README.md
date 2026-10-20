@@ -59,3 +59,15 @@ GitHub Pages → Deploy from a branch → `main` → `/(root)`。仓库根目录
 笔记只在浏览器中，未配置账号或自动云同步。请在清理浏览器、换设备前导出备份。不同站点的备份格式相互区分，防止误覆盖。系统中文语音是否可用、是否离线可用，取决于浏览器和设备。
 
 基础软件沿用 Redwallen 原项目的 MIT 许可。古代经文公有领域，电子转录出处、现代整理及新增译注的 CC BY-SA 4.0 说明见 SOURCES.md。
+
+## 访问统计（Cloudflare Web Analytics）
+
+已接入站主 Cloudflare 账号的 Web Analytics，使用官方客户端 beacon。网页不展示访问计数，也不提供公开统计面板；查看统计需要登录相应的 Cloudflare 账号。后台入口：[Cloudflare Web Analytics](https://dash.cloudflare.com/?to=/:account/web-analytics)，选择 `sunhow.github.io`，查看 `/fojing-reader/`。
+
+- 只在正式主机 `sunhow.github.io` 的 `/fojing-reader/` 路径加载，本地预览不发送统计。
+- 使用官方 `spa: false` 选项，统计文档打开／刷新，不把「看白话」、切换段落等操作增加为新的页面浏览。本站使用哈希路由，各经书与基础导读不会作为单独路径统计。
+- 可查看页面浏览量、访问次数、来源、设备、国家地区等；访问次数不是精确的去重人数。
+- 统计从接入后开始，历史访问不能补回。广告拦截、离线、网络失败等可能使数据漏计。
+- Cloudflare 不提供个体访客追踪；本网站没有编写上传笔记、搜索词或阅读进度的统计事件。笔记的 localStorage 逻辑继续保持。
+- HTML 中的站点 token 是公开的收集标识，不是账号 API 密钥，也不能用来读取后台报表。不要将账号密码或 API 密钥写入仓库。
+- 参考：[官方接入说明](https://developers.cloudflare.com/web-analytics/get-started/)、[SPA 选项](https://developers.cloudflare.com/web-analytics/get-started/web-analytics-spa/)。

@@ -158,5 +158,18 @@
 <script src="book.js"></script>
 <script src="foundations.js"></script>
 <script src="app.js"></script>
+<!-- Owner-only reports in Cloudflare Web Analytics. The site token is public, not an API key. -->
+<script>
+(function () {
+  if (location.hostname !== 'sunhow.github.io' || location.pathname.indexOf('/fojing-reader/') !== 0) return;
+  var beacon = document.createElement('script');
+  beacon.id = 'fojing-web-analytics';
+  beacon.type = 'module';
+  beacon.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+  // Measure document visits; in-page reading controls must not inflate page views.
+  beacon.setAttribute('data-cf-beacon', JSON.stringify({token: '6685f23d44a34f478d4f75a09376f113', spa: false}));
+  document.body.appendChild(beacon);
+})();
+</script>
 </body>
 </html>
