@@ -52,7 +52,7 @@ python3 -m http.server 4175 --bind 127.0.0.1 --directory dist
 
 ## 发布
 
-GitHub Pages → Deploy from a branch → `main` → `/(root)`。仓库根目录即含可发布资源，无需提交 `dist/` 或设置自定义工作流。所有资源使用相对路径。首次更新可能经过离线缓存切换，再刷新一次可载入新版本。
+GitHub Pages → Deploy from a branch → `main` → `/(root)`。仓库根目录即含可发布资源，无需提交 `dist/` 或设置自定义工作流。所有资源使用相对路径。构建会给静态资源加上内容版本号，在线打开新版页面时直接获取对应资源，避免旧离线缓存覆盖新文案；离线仍可使用最近完整缓存的版本。
 
 ## 数据与授权
 
