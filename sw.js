@@ -1,9 +1,9 @@
 /* Offline cache is isolated by repository path, including on shared GitHub Pages origins. */
 const SCOPE = new URL(self.registration.scope).pathname;
 const PREFIX = 'fojing:' + SCOPE + ':';
-const VERSION = '7eb334d37c126a';
+const VERSION = 'a1a920d2e8c25d';
 const CACHE = PREFIX + VERSION;
-const ASSETS = ["./","./index.html","./manifest.webmanifest?v=6b632bf2f6dbd3","./style.css?v=b9c3935f237672","./library.css?v=679e50bb290007","./config.js?v=0cf3df69ab80fa","./app.js?v=521f988fa1c434","./book.js?v=2fadfcb09ee926","./foundations.js?v=f1eaa00712d9f0","./icon-192.png?v=f3fb3d8d9d3f42","./icon-512.png?v=2ee7d761d0534c","./icon-maskable-512.png?v=2ee7d761d0534c","./apple-touch-icon.png?v=e6c105376957bf","./favicon-32.png?v=3b068fac394a2a"];
+const ASSETS = ["./","./index.html","./manifest.webmanifest?v=5e1dc3e99016ba","./style.css?v=b9c3935f237672","./library.css?v=661bfb4eab2a2a","./config.js?v=0cf3df69ab80fa","./app.js?v=0bcdf0ca1be7f0","./book.js?v=18c92726af91b1","./foundations.js?v=f1eaa00712d9f0","./icon-192.png?v=f3fb3d8d9d3f42","./icon-512.png?v=2ee7d761d0534c","./icon-maskable-512.png?v=2ee7d761d0534c","./apple-touch-icon.png?v=e6c105376957bf","./favicon-32.png?v=3b068fac394a2a"];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS.map(url=>new Request(url,{cache:'reload'})))).then(()=>self.skipWaiting()));
 });

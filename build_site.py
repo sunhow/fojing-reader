@@ -27,7 +27,8 @@ sw=re.sub(r"const VERSION = '[^']+';",f"const VERSION = '{digest.hexdigest()[:14
 out=ROOT/'dist'
 if out.exists():shutil.rmtree(out)
 out.mkdir()
-for item in assets+['sw.js','LICENSE','SOURCES.md']:
+source_files=['source-'+code+'.xml' for code in ['T09n0262','T34n1718','T10n0279','T35n1735']]
+for item in assets+['sw.js','LICENSE','SOURCES.md','CBETA-LICENSE.md']+source_files:
  p=ROOT/item
  if p.is_dir():shutil.copytree(p,out/item)
  else:shutil.copy2(p,out/item)

@@ -190,7 +190,7 @@
     return { sec: sec, pr: pr, pos: pr.pos || 0 };
   }
   function focusReveal() {
-    var f = focusState(); if (!f) return;
+    var f = focusState(); if (!f || f.sec.readingMode === 'original') return;
     f.pr.revealed[f.pos] = true;
     touch(f.pr); persistProgress();
     // Reveal in place; rebuilding the route would reset the scroll position.
@@ -243,7 +243,7 @@
       goToSection(next);
       return;
     }
-    if (!f.pr.revealed[f.pos] && settings.defaultReveal !== 'shown') focusReveal();
+    if (f.sec.readingMode !== 'original' && !f.pr.revealed[f.pos] && settings.defaultReveal !== 'shown') focusReveal();
     else focusNext();
   }
 
@@ -413,6 +413,7 @@
     // 手机端：阅读时把底部标签栏换成逐句操作条
     var focusMode = parts[0] === 'read' && state.mode === 'focus';
     document.body.classList.toggle('in-reader', parts[0] === 'read');
+    document.body.classList.toggle('original-reader', !!(state.reader && BOOK.chapters[state.reader.ci].readingMode==='original'));
     document.body.classList.toggle('focus-mode', focusMode);
     if (focusMode) hintSwipeOnce();
 
@@ -428,7 +429,7 @@
   function hintSwipeOnce() {
     if (!isTouchReading() || load(LS.swipeHint, false)) return;
     save(LS.swipeHint, true);
-    setTimeout(function () { toast('左滑看下一段，右滑回上一段'); }, 700);
+    setTimeout(function () { toast(state.reader&&BOOK.chapters[state.reader.ci].readingMode==='original'?'左滑下一段，右滑上一段':'左滑看下一段，右滑回上一段'); }, 700);
   }
 
   /* ----------------------------- 首页 ----------------------------- */
@@ -467,22 +468,24 @@
 
   function renderHome(view) {
     var ov=overallStats(),last=load(LS.last,null),lastEntry=last&&BOOK.chapters[last.ci]&&BOOK.chapters[last.ci].sections[last.si]?last:firstUnreadSection();
-    var html='<section class="library-hero"><div class="hero-copy"><div class="eyebrow">'+escapeHtml(CONFIG.notebookName)+' <span>/</span> READ · REFLECT · PRACTICE</div><h1>慢读经文，<br><em>躬行于日常。</em></h1><p class="library-lead">从知足与善行，到般若与行愿。<br>九项经书与选读，配完整白话，一段一段读懂。</p><div class="hero-actions">'+resumeButton(lastEntry,true,last?'继续上次阅读':'从《佛遗教经》开始')+'<a href="#/guide" class="quiet-link">初读指南 ↗</a></div></div><div class="library-art" aria-hidden="true">'+lotus()+'<div class="art-caption">戒 · 定 · 慧</div><span class="vertical-note">读有所悟　行有所依</span></div></section>';
-    html+='<div class="reading-summary"><div><span class="summary-label">我的阅读</span><strong>'+ov.done+'<small> / '+ov.total+' 节已读完</small></strong></div><div class="summary-progress"><div class="bar"><i style="width:'+ov.pct+'%"></i></div><span>'+ov.pct+'% · 九项经书与选读，循序渐读</span></div><a href="#/mynotes">我的札记 →</a></div>';
+    var html='<section class="library-hero"><div class="hero-copy"><div class="eyebrow">'+escapeHtml(CONFIG.notebookName)+' <span>/</span> READ · REFLECT · PRACTICE</div><h1>慢读经文，<br><em>躬行于日常。</em></h1><p class="library-lead">从知足与善行，到般若与行愿。<br>九项白话读本，四部原典与祖师注疏。<br>从入门慢读，到循卷研读。</p><div class="hero-actions">'+resumeButton(lastEntry,true,last?'继续上次阅读':'从《佛遗教经》开始')+'<a href="#/guide" class="quiet-link">初读指南 ↗</a></div></div><div class="library-art" aria-hidden="true">'+lotus()+'<div class="art-caption">戒 · 定 · 慧</div><span class="vertical-note">读有所悟　行有所依</span></div></section>';
+    html+='<div class="reading-summary"><div><span class="summary-label">我的阅读</span><strong>'+ov.done+'<small> / '+ov.total+' 节已读完</small></strong></div><div class="summary-progress"><div class="bar"><i style="width:'+ov.pct+'%"></i></div><span>'+ov.pct+'% · 十三项经书与注疏，循序渐读</span></div><a href="#/mynotes">我的札记 →</a></div>';
     html+='<a class="basics-home-banner" href="#/basics"><span class="small-seal">知</span><div><strong>佛教基础名词导读</strong><p>三宝、四谛、五蕴、缘起……把十二个概念连起来，再回到经文。</p></div><span>开始理解 ↗</span></a>';
     html+='<section class="library-catalog"><header class="catalog-head"><div><div class="eyebrow">READING COLLECTION / 01—09</div><h2>循序读经</h2></div><span class="collection-count">9 项经书与选读 · 359 段白话对照</span></header><p class="collection-intro">先从生活里的修心与不伤害读起，再慢慢进入无住的智慧与广大的愿行。</p><div class="reading-path" aria-label="建议阅读顺序">';
     orderedChapters().slice(0,6).forEach(function(entry,i){var ch=entry.ch;html+='<a href="#/ch/'+entry.ci+'"><span>'+String(i+1).padStart(2,'0')+'</span>'+escapeHtml(ch.theme)+'</a>'+(i<5?'<i aria-hidden="true">→</i>':'');});
     html+='</div><div class="book-grid">';
-    orderedChapters().forEach(function(entry,order){var ch=entry.ch,i=entry.ci;var st=chapterStats(ch);html+='<a class="book-card" href="#/ch/'+i+'" aria-label="'+escapeAttr(String(order+1).padStart(2,'0')+' '+ch.title+' '+ch.subtitle)+'"><div class="book-cover cover-'+i+'"><div class="cover-meta">SUTRA '+String(order+1).padStart(2,'0')+'</div><div class="cover-title">'+escapeHtml(ch.title)+'</div><div class="cover-foot"><span>原文 · 白话</span><b>'+['修','善','空','慧','愿','觉','言','净','藏'][i]+'</b></div></div><div class="book-info"><div class="book-kicker">'+escapeHtml(ch.theme)+'<span>'+(ch.scope==='selection'?'选读 · ':'')+ch.passageCount+' 段</span></div><h3>'+escapeHtml(ch.title)+'</h3><p>'+escapeHtml(ch.subtitle)+'</p><div class="book-progress"><div class="bar"><i style="width:'+st.pct+'%"></i></div><small>'+(st.done?st.done+' / '+st.total+' 节':'开始阅读')+' <span>↗</span></small></div></div></a>';});
-    html+='</div></section><section class="companion-section"><div><div class="eyebrow">CONTINUE YOUR READING</div><h2>也读一读其他经典。</h2><p>从《论语》《道德经》等国学经典，到《易经》六十四卦，继续阅读。</p></div><div class="companion-links"><a href="https://sunhow.github.io/guoxue-reader/" target="_blank" rel="noopener noreferrer"><span class="companion-seal">学</span><div><strong>国学精读 · 修身与处世</strong><small>六部中国经典 · 原文白话对照</small></div><span>↗</span></a><a href="https://sunhow.github.io/yijing-reader/" target="_blank" rel="noopener noreferrer"><span class="companion-seal">易</span><div><strong>易经 · 六十四卦精读</strong><small>六十四卦 · 原文白话对照</small></div><span>↗</span></a></div></section>';
+    orderedChapters().filter(function(entry){return entry.ch.readingMode!=="original";}).forEach(function(entry,order){var ch=entry.ch,i=entry.ci;var st=chapterStats(ch);html+='<a class="book-card" href="#/ch/'+i+'" aria-label="'+escapeAttr(String(order+1).padStart(2,'0')+' '+ch.title+' '+ch.subtitle)+'"><div class="book-cover cover-'+i+'"><div class="cover-meta">SUTRA '+String(order+1).padStart(2,'0')+'</div><div class="cover-title">'+escapeHtml(ch.title)+'</div><div class="cover-foot"><span>原文 · 白话</span><b>'+['修','善','空','慧','愿','觉','言','净','藏'][i]+'</b></div></div><div class="book-info"><div class="book-kicker">'+escapeHtml(ch.theme)+'<span>'+(ch.scope==='selection'?'选读 · ':'')+ch.passageCount+' 段</span></div><h3>'+escapeHtml(ch.title)+'</h3><p>'+escapeHtml(ch.subtitle)+'</p><div class="book-progress"><div class="bar"><i style="width:'+st.pct+'%"></i></div><small>'+(st.done?st.done+' / '+st.total+' 节':'开始阅读')+' <span>↗</span></small></div></div></a>';});
+    html+='</div></section><section class="library-catalog original-catalog"><header class="catalog-head"><div><div class="eyebrow">CANON & COMMENTARY / 10—13</div><h2>原典与祖师注疏</h2></div><span class="collection-count">四部完整原典 · 循卷研读</span></header><p class="collection-intro">《法华经》与智者大师《法华文句》相参，《八十华严》与澄观大师《华严经疏》相参。保留经疏原文，不另加白话。</p><div class="book-grid original-grid">';
+    orderedChapters().filter(function(entry){return entry.ch.readingMode==='original';}).forEach(function(entry,i){var ch=entry.ch,st=chapterStats(ch);html+='<a class="book-card original-card" href="#/ch/'+entry.ci+'" aria-label="'+escapeAttr(ch.title+' '+ch.author)+'"><div class="book-cover cover-original-'+i+'"><div class="cover-meta">'+escapeHtml(ch.sourceCode)+' · '+escapeHtml(ch.category)+'</div><div class="cover-title">'+escapeHtml(ch.title)+'</div><div class="cover-foot"><span>完整原文 · '+(i===0?'二十八品':i===1?'十卷分上下':i===2?'八十卷':'六十卷')+'</span><b>'+['法','文','华','疏'][i]+'</b></div></div><div class="book-info"><div class="book-kicker">'+escapeHtml(ch.category)+'<span>原文版</span></div><h3>'+escapeHtml(ch.title)+'</h3><p>'+escapeHtml(ch.author)+'</p><div class="book-progress"><div class="bar"><i style="width:'+st.pct+'%"></i></div><small>'+st.done+' / '+st.total+' 节 <span>↗</span></small></div></div></a>';});
+    html+='</div><p class="source-note">电子底本：CBETA 正式版 · 非营利使用 · <a href="CBETA-LICENSE.md" target="_blank" rel="noopener noreferrer">来源与流通说明</a></p></section><section class="companion-section"><div><div class="eyebrow">CONTINUE YOUR READING</div><h2>也读一读其他经典。</h2><p>从《论语》《道德经》等国学经典，到《易经》六十四卦，继续阅读。</p></div><div class="companion-links"><a href="https://sunhow.github.io/guoxue-reader/" target="_blank" rel="noopener noreferrer"><span class="companion-seal">学</span><div><strong>国学精读 · 修身与处世</strong><small>六部中国经典 · 原文白话对照</small></div><span>↗</span></a><a href="https://sunhow.github.io/yijing-reader/" target="_blank" rel="noopener noreferrer"><span class="companion-seal">易</span><div><strong>易经 · 六十四卦精读</strong><small>六十四卦 · 原文白话对照</small></div><span>↗</span></a></div></section>';
     html+='<section class="reading-note"><span class="small-seal">读</span><div><h3>先读懂一句，再记下一点。</h3><p>原文、白话与阅读提示分开呈现。可以随时查看繁体底本，查找名词，记下疑问，也记下一件愿意在生活中实践的事。</p><a href="#/guide">版本、收录范围与使用说明 →</a></div></section>';
     view.innerHTML=html;
   }
 
   function renderGuide(view) {
-    var html='<div class="crumb"><a href="#/">书架</a> / 初读指南</div><header class="chapter-head"><div class="eyebrow">BEFORE YOU BEGIN</div><h1>由浅入深，读与行相伴。</h1><p class="ch-sub">由日常修心到智慧与愿行，再读悲愿救苦、入门偈颂与净土经典。</p></header><div class="guide-content prose"><h2>建议怎样读</h2><p>《佛遗教经》先看少欲、知足与实际修习；《十善业道经》关注身口意的不伤害；《心经》《金刚经》再进入无自性、无我和不住相；《普贤行愿品》把理解展开为广大利他愿行；随后读《地藏菩萨本愿经》，从救亲与救众生的故事理解悲愿救苦。这个顺序是本书架的阅读安排，不是所有佛教传统唯一的修学次第。</p><h2>九项经书与选读的版本范围</h2>';
-    orderedChapters().forEach(function(entry,i){var ch=entry.ch;html+='<h3>'+String(i+1).padStart(2,'0')+' · '+escapeHtml(ch.fullTitle)+'</h3><p>'+escapeHtml(ch.author)+'。'+escapeHtml(ch.edition)+'</p><p><a href="'+escapeAttr(ch.source)+'" target="_blank" rel="noopener noreferrer">核对原文来源 ↗</a> · '+ch.passageCount+' 个对照段落</p>';});
-    html+='<h2>原文与白话的边界</h2><p>本站收录八项所注明范围的完整正文，以及明确标注的《法句经》二十偈选读，共 51 个阅读小节、359 个对照段落。《地藏经》保留三卷十三品，其余阅读小节名为便于阅读所拟；《金刚经》的三十二分保留在段落标题中，《普贤行愿品》偈颂每四句一组。来源网页的开经仪轨、现代序言和链接说明不混入正文。</p><p>白话依原文次序展开内容，保持对话、清单和偈颂；原有专名酌予保留。佛教术语有多种解释，白话中的必要解释并非唯一可能译法。「阅读提示」另行说明背景和歧义。译文、提示和名词表由 AI 辅助撰写，尚未经过佛教学者或法师逐条审定，也不是某位法师的讲记。</p><h2>尤其值得留意</h2><p>般若经中的「空」不是一切不存在，「无我」不是否定人的尊严或责任。经典中关于福报、神通和护持的叙述，保留其信仰意义，不作为现实健康、财富或安全的保证。出家戒律与在家生活的适用范围不同，严酷本生叙事也不是要求模仿伤害身体。</p><h2>怎么用这个网站</h2><p>先在书架选经，再选小节。点击「看白话」或原文，只在当前位置展开译文，手机和电脑都不自动滚动。译文下方可以展开阅读提示。切换通篇对照可一次看完本节，段落目录可直接定位。</p><p>搜索支持原文、底本字形、白话、阅读提示和基础导读。新增的<a href="#/basics">基础导读</a>把十二个概念连成学习路径，提供常见误解、生活例子和直达原文的链接；名词页可按经书筛选，也可进入相关深入导读。设置提供简繁经文、字号、横竖排、纸色以及备份导入导出。朗读依赖设备的中文语音。</p><h2>笔记与进度</h2><p>本书架的数据仅保存在当前浏览器，可导出 JSON 备份，在另一设备导入。同一浏览器首次进入新版书架时，会合并旧版《地藏经》的笔记与进度，同一品保留修改时间较新的记录；旧站数据保留，之后两站不双向同步。换设备可先在<a href="https://sunhow.github.io/dizang-reader/" target="_blank" rel="noopener noreferrer">旧版地藏经</a>导出，再在本书架导入备份。《易经》记录仍独立保存。</p><p>本站使用 Cloudflare Web Analytics 统计整体访问量、来源和设备等信息，统计报表仅由站主在登录后的后台查看。本网站不把笔记、搜索输入或阅读进度作为统计事件发送；笔记仍保存在当前浏览器。</p><h2>来源与授权</h2><p>古代经文属于公有领域，电子底本来源、页面修订号及处理规则见 <a href="SOURCES.md" target="_blank" rel="noopener noreferrer">SOURCES.md</a>。新增白话和提示按 CC BY-SA 4.0 提供。阅读界面改编自 <a href="https://github.com/Redwallen/liaofan-sizun" target="_blank" rel="noopener noreferrer">Redwallen 的 MIT 开源项目</a>，并在 Sunhow 维护的经典阅读器上继续改造。</p></div><a class="btn primary" href="#/ch/0">从《佛遗教经》开始 →</a>';
+    var html='<div class="crumb"><a href="#/">书架</a> / 初读指南</div><header class="chapter-head"><div class="eyebrow">BEFORE YOU BEGIN</div><h1>由浅入深，读与行相伴。</h1><p class="ch-sub">由日常修心到智慧与愿行，再读悲愿救苦、入门偈颂与净土经典。</p></header><div class="guide-content prose"><h2>建议怎样读</h2><p>《佛遗教经》先看少欲、知足与实际修习；《十善业道经》关注身口意的不伤害；《心经》《金刚经》再进入无自性、无我和不住相；《普贤行愿品》把理解展开为广大利他愿行；随后读《地藏菩萨本愿经》，从救亲与救众生的故事理解悲愿救苦。这个顺序是本书架的阅读安排，不是所有佛教传统唯一的修学次第。</p><h2>十三项读本与注疏的版本范围</h2>';
+    orderedChapters().forEach(function(entry,i){var ch=entry.ch;html+='<h3>'+String(i+1).padStart(2,'0')+' · '+escapeHtml(ch.fullTitle)+'</h3><p>'+escapeHtml(ch.author)+'。'+escapeHtml(ch.edition)+'</p><p><a href="'+escapeAttr(ch.source)+'" target="_blank" rel="noopener noreferrer">核对原文来源 ↗</a> · '+ch.passageCount+(ch.readingMode==='original'?' 个原文阅读段落':' 个对照段落')+'</p>';});
+    html+='<h2>原文与白话的边界</h2><p>白话读本收录八项所注明范围的完整正文，以及明确标注的《法句经》二十偈选读，共 51 个阅读小节、359 个对照段落。另增四部原典与祖师注疏，共188个卷／品阅读单元、7701个原文段落。原文分段为阅读排版，非古籍原有章数。《地藏经》保留三卷十三品，其余阅读小节名为便于阅读所拟；《金刚经》的三十二分保留在段落标题中，《普贤行愿品》偈颂每四句一组。来源网页的开经仪轨、现代序言和链接说明不混入正文。</p><p>白话依原文次序展开内容，保持对话、清单和偈颂；原有专名酌予保留。佛教术语有多种解释，白话中的必要解释并非唯一可能译法。「阅读提示」另行说明背景和歧义。译文、提示和名词表由 AI 辅助撰写，尚未经过佛教学者或法师逐条审定，也不是某位法师的讲记。</p><h2>原典与祖师注疏怎样读</h2><p>四部原文版提供逐段阅读与通篇原文，直接使用“下一段”，没有“看白话”或本站AI名词注解。书目页可切换到相关经／疏；这些入口是书籍间参照，并非逐句对位。卷数较多时可在目录中检索卷名、品名。</p><p>《法华文句》为智顗说、灌顶记，十卷各分上下；《华严经疏》为澄观六十卷疏，含其自序，未混用净源《疏注》或《随疏演义钞》。原文版的来源、标点整理及使用条件归CBETA，不能作为本站AI撰写的注解理解。</p><h2>尤其值得留意</h2><p>般若经中的「空」不是一切不存在，「无我」不是否定人的尊严或责任。经典中关于福报、神通和护持的叙述，保留其信仰意义，不作为现实健康、财富或安全的保证。出家戒律与在家生活的适用范围不同，严酷本生叙事也不是要求模仿伤害身体。</p><h2>怎么用这个网站</h2><p>先在书架选经，再选小节。点击「看白话」或原文，只在当前位置展开译文，手机和电脑都不自动滚动。译文下方可以展开阅读提示。切换通篇对照可一次看完本节，段落目录可直接定位。</p><p>搜索支持原文、底本字形、白话、阅读提示和基础导读。新增的<a href="#/basics">基础导读</a>把十二个概念连成学习路径，提供常见误解、生活例子和直达原文的链接；名词页可按经书筛选，也可进入相关深入导读。设置提供简繁经文、字号、横竖排、纸色以及备份导入导出。朗读依赖设备的中文语音。</p><h2>笔记与进度</h2><p>本书架的数据仅保存在当前浏览器，可导出 JSON 备份，在另一设备导入。同一浏览器首次进入新版书架时，会合并旧版《地藏经》的笔记与进度，同一品保留修改时间较新的记录；旧站数据保留，之后两站不双向同步。换设备可先在<a href="https://sunhow.github.io/dizang-reader/" target="_blank" rel="noopener noreferrer">旧版地藏经</a>导出，再在本书架导入备份。《易经》记录仍独立保存。</p><p>本站使用 Cloudflare Web Analytics 统计整体访问量、来源和设备等信息，统计报表仅由站主在登录后的后台查看。本网站不把笔记、搜索输入或阅读进度作为统计事件发送；笔记仍保存在当前浏览器。</p><h2>来源与授权</h2><p>古代经文属于公有领域，电子底本来源、页面修订号及处理规则见 <a href="SOURCES.md" target="_blank" rel="noopener noreferrer">SOURCES.md</a>。本站新增白话和提示按 CC BY-SA 4.0 提供；四部CBETA电子原典另依 CC BY-NC-SA 3.0 台湾及其非营利流通说明使用，保留完整XML来源和版权头。详见 <a href="CBETA-LICENSE.md" target="_blank" rel="noopener noreferrer">CBETA流通说明</a>。阅读界面改编自 <a href="https://github.com/Redwallen/liaofan-sizun" target="_blank" rel="noopener noreferrer">Redwallen 的 MIT 开源项目</a>，并在 Sunhow 维护的经典阅读器上继续改造。</p></div><a class="btn primary" href="#/ch/0">从《佛遗教经》开始 →</a>';
     view.innerHTML=html;
   }
 
@@ -515,13 +518,15 @@
     if (ch.intro) html += '<div class="chapter-intro">' + paragraphs(ch.intro) + '</div>';
     html += '<details class="edition-note"><summary>版本与收录范围 · '+escapeHtml(ch.author)+'</summary><p>'+escapeHtml(ch.edition)+'</p><a href="'+escapeAttr(ch.source)+'" target="_blank" rel="noopener noreferrer">核对来源 ↗</a></details>';
 
+    if(ch.relatedSlugs){html+='<nav class="related-books" aria-label="相关经疏">'+ch.relatedSlugs.map(function(slug){var ri=BOOK.chapters.findIndex(function(x){return x.slug===slug;});return '<a class="chip" href="#/ch/'+ri+'">'+escapeHtml(BOOK.chapters[ri].title)+' →</a>';}).join('')+'</nav><p class="source-note">CBETA '+escapeHtml(ch.sourceCode)+' · '+escapeHtml(ch.revision)+' · <a href="CBETA-LICENSE.md" target="_blank" rel="noopener noreferrer">非营利流通说明</a> · <a href="'+escapeAttr(ch.sourceFile)+'" target="_blank" rel="noopener noreferrer">完整XML底本</a></p>';}
+    if(ch.sections.length>25)html+='<label class="toc-filter">查找目录<input type="search" id="tocSearch" placeholder="输入卷名或品名，例如：第十、入法界" aria-label="查找本书目录"></label>';
     html += '<div class="sec-list">';
     ch.sections.forEach(function (sec, si) {
       if(sec.volume&&(si===0||ch.sections[si-1].volume!==sec.volume))html+='<h2 class="volume-heading">卷'+escapeHtml(sec.volume)+'</h2>';
       var p = progress[sec.id] || {};
       html += '<a class="sec-item' + (p.done ? ' done' : '') + '" href="#/read/' + ci + '/' + si + '">';
       html += '<span class="sec-no">' + sec.number + '</span>';
-      html += '<span class="sec-title">' + escapeHtml(sec.title) + '</span>';
+      html += '<span class="sec-title">' + escapeHtml(sec.title) + (sec.contents?'<small class="sec-contents">'+escapeHtml(sec.contents)+'</small>':'') + '</span>';
       if (mynotes[sec.id] && mynotes[sec.id].text) html += '<span class="sec-meta">有笔记</span>';
       html += '<span class="sec-meta">' + sec.pairs.length + ' 段</span>';
       if (p.done) html += '<span class="sec-check">✓</span>';
@@ -536,6 +541,7 @@
     html += '</div>';
 
     view.innerHTML = html;
+    var toc=$('#tocSearch');if(toc)toc.addEventListener('input',function(){var q=toc.value.trim();$$('.sec-item',view).forEach(function(a){a.hidden=!a.textContent.includes(q);});});
   }
 
   function paragraphs(text) {
@@ -556,6 +562,7 @@
     var ch = BOOK.chapters[ci];
     if (!ch || !ch.sections[si]) { view.innerHTML = '<div class="empty"><h2>没有这一节</h2><p><a href="#/">回到目录</a></p></div>'; return; }
     var sec = ch.sections[si];
+    var originalOnly=ch.readingMode==='original';
     if (settings.script === 'traditional') sec = Object.assign({},sec,{pairs:sec.pairs.map(function(p){return Object.assign({},p,{orig:p.traditional});}),notes:sec.notes.map(function(n){return Object.assign({},n,{term:n.traditional||n.term});})});
     var pr = secProgress(sec.id);
     save(LS.last, { ci: ci, si: si });
@@ -572,9 +579,9 @@
     html += '<span class="spacer"></span>';
     html += '<div class="seg-control">' +
             '<button data-mode="focus" class="' + (state.mode === 'focus' ? 'on' : '') + '">逐段精读</button>' +
-            '<button data-mode="flow" class="' + (state.mode === 'flow' ? 'on' : '') + '">通篇对照</button></div>';
+            '<button data-mode="flow" class="' + (state.mode === 'flow' ? 'on' : '') + '">'+(originalOnly?'通篇原文':'通篇对照')+'</button></div>';
     html += '<button class="btn small ghost" id="speakSection">朗读</button>';
-    if (state.mode === 'flow') html += '<button class="btn small ghost" id="toggleAll">全部展开</button>';
+    if (state.mode === 'flow' && !originalOnly) html += '<button class="btn small ghost" id="toggleAll">全部展开</button>';
     html += '</div>';
 
     html += '<header class="sec-heading">';
@@ -582,7 +589,7 @@
     html += '<h1>' + escapeHtml(sec.title) + '</h1>';
     html += '</header>';
 
-    html += '<div class="reading-context"><div><span class="eyebrow">本节提要</span><p>' + escapeHtml(sec.intro) + '</p></div><label class="passage-picker">段落目录<select id="passageSelect" aria-label="选择经文段落">' + sec.pairs.map(function(p,i){return '<option value="'+i+'"'+(i===pr.pos?' selected':'')+'>'+String(i+1).padStart(2,'0')+' · '+escapeHtml(p.label)+'</option>';}).join('') + (pr.pos >= sec.pairs.length ? '<option value="'+sec.pairs.length+'" selected>本节已读完</option>' : '') + '</select></label></div>';
+    html += '<div class="reading-context"><div><span class="eyebrow">阅读说明</span><p>' + escapeHtml(sec.intro) + '</p></div><label class="passage-picker">段落目录<select id="passageSelect" aria-label="选择经文段落">' + sec.pairs.map(function(p,i){return '<option value="'+i+'"'+(i===pr.pos?' selected':'')+'>'+String(i+1).padStart(2,'0')+' · '+escapeHtml(p.label)+'</option>';}).join('') + (pr.pos >= sec.pairs.length ? '<option value="'+sec.pairs.length+'" selected>本节已读完</option>' : '') + '</select></label></div>';
 
 
     var allRevealed = sec.pairs.every(function (_, i) { return pr.revealed[i]; });
@@ -612,7 +619,7 @@
               '<div class="insight-card"><span class="ilabel">阅读线索</span>' + escapeHtml(sec.insight) + '</div></section>';
     }
 
-    html += '<div class="source-note">'+escapeHtml(ch.author)+' · <a href="#/ch/'+ci+'">版本与目录</a><br>白话译文与阅读提示为 AI 辅助整理 · <a href="' + escapeAttr(sec.source) + '" target="_blank" rel="noopener noreferrer">核对本节原文 ↗</a></div>';
+    html += '<div class="source-note">'+escapeHtml(ch.author)+' · <a href="#/ch/'+ci+'">版本与目录</a><br>'+(originalOnly?'电子底本：CBETA · 原典照录 · <a href="CBETA-LICENSE.md" target="_blank" rel="noopener noreferrer">非营利流通说明</a>':'白话译文与阅读提示为 AI 辅助整理')+' · <a href="' + escapeAttr(sec.source) + '" target="_blank" rel="noopener noreferrer">核对本节原文 ↗</a></div>';
     var before = neighborSection(ci, si, -1), after = neighborSection(ci, si, 1);
     html += '<nav class="gua-neighbors" aria-label="相邻小节">' + (before ? '<a href="#/read/'+before.ci+'/'+before.si+'">← '+escapeHtml(before.sec.name)+'</a>':'<span>全书起点</span>') + '<a href="#/">经典书架</a>' + (after ? '<a href="#/read/'+after.ci+'/'+after.si+'">'+escapeHtml(after.sec.name)+' →</a>':'<span>全书终章</span>') + '</nav>';
 
@@ -677,12 +684,12 @@
     }
 
     var pair = sec.pairs[pos];
-    var shown = pr.revealed[pos] || defaultShown;
+    var shown = sec.readingMode==='original' || pr.revealed[pos] || defaultShown;
     html += '<div class="focus-body">';
     html += '<div class="passage-label">' + escapeHtml(pair.label) + ' <span>' + (pos + 1) + ' / ' + sec.pairs.length + '</span></div>';
     if (pair.citation) html += '<div class="passage-citation">出处：'+escapeHtml(pair.citation)+'</div>';
-    html += '<p class="orig-line" tabindex="0" role="button" aria-label="展开本段白话" id="focusOrig">' + decorate(pair.orig, sec.notes) + '</p>';
-    html += '<div class="trans-box' + (shown ? ' reveal' : '') + '" id="focusTrans"' + (shown ? '' : ' hidden') + '>' +
+    html += '<p class="orig-line"'+(sec.readingMode==='original'?'':' tabindex="0" role="button" aria-label="展开本段白话" id="focusOrig"')+'>' + decorate(pair.orig, sec.notes) + '</p>';
+    if(sec.readingMode!=='original') html += '<div class="trans-box' + (shown ? ' reveal' : '') + '" id="focusTrans"' + (shown ? '' : ' hidden') + '>' +
             renderTranslation(pair) + '</div>';
     html += '</div>';
 
@@ -716,22 +723,22 @@
     }
     var tip = finished
       ? (nextS ? '空格 → 下一节' : '这已经是书架最后一节')
-      : '点原文也能显示白话 · 空格 → 下一段';
+      : (sec.readingMode==='original'?'原典照录 · 空格 → 下一段':'点原文也能显示白话 · 空格 → 下一段');
     html += '<span class="tip">' + tip + '</span>';
     html += '</div></div>';
     return html;
   }
 
   function renderFlow(sec, pr, defaultShown) {
-    var html = '<div class="flow-list">';
+    var html = '<div class="flow-list'+(sec.readingMode==='original'?' original-flow':'')+'">';
     sec.pairs.forEach(function (pair, i) {
       var shown = pr.revealed[i] || defaultShown;
       html += '<div class="pair' + (shown ? ' opened' : '') + '" data-pair="' + i + '">';
       html += '<div class="passage-label">' + escapeHtml(pair.label) + '</div>';
       if (pair.citation) html += '<div class="passage-citation">出处：'+escapeHtml(pair.citation)+'</div>';
-      html += '<p class="orig-line" tabindex="0" role="button" aria-label="切换本段白话">' + decorate(pair.orig, sec.notes) + '</p>';
-      html += '<div class="pair-click-hint">点击这一段，看白话译文</div>';
-      html += '<div class="trans-box reveal">' + renderTranslation(pair) + '</div>';
+      html += '<p class="orig-line"'+(sec.readingMode==='original'?'':' tabindex="0" role="button" aria-label="切换本段白话"')+'>' + decorate(pair.orig, sec.notes) + '</p>';
+      if(sec.readingMode!=='original') html += '<div class="pair-click-hint">点击这一段，看白话译文</div>';
+      if(sec.readingMode!=='original') html += '<div class="trans-box reveal">' + renderTranslation(pair) + '</div>';
       html += '</div>';
     });
     html += '</div>';
@@ -1017,7 +1024,7 @@
 
       // 通篇：展开某句
       var pair = t.closest('.pair');
-      if (pair && !t.closest('.term') && !t.closest('.trans-box')) {
+      if (pair && !t.closest('.original-flow') && !t.closest('.term') && !t.closest('.trans-box')) {
         var i = parseInt(pair.dataset.pair, 10);
         pair.classList.toggle('opened');
         if (state.reader) {
