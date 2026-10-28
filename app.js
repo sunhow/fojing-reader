@@ -437,6 +437,16 @@
     return '<svg class="lotus" viewBox="0 0 240 200" fill="none" aria-hidden="true"><g stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M120 157C72 132 79 78 120 28C161 78 168 132 120 157Z"/><path d="M120 157C65 154 38 109 46 59C96 69 123 107 120 157Z"/><path d="M120 157C175 154 202 109 194 59C144 69 117 107 120 157Z"/><path d="M120 157C74 172 28 151 13 109C67 101 102 117 120 157Z"/><path d="M120 157C166 172 212 151 227 109C173 101 138 117 120 157Z"/><path d="M120 157V87M52 177Q120 198 188 177M70 185Q120 201 170 185"/></g></svg>';
   }
 
+  function audioControl(track, compact) {
+    if (!track || !track.src) return '';
+    return '<div class="audio-control' + (compact ? ' compact' : '') + '"><div class="audio-meta"><strong>' + escapeHtml(track.title) + '</strong><small>网页音频 · 站主提供</small></div><audio controls preload="none"><source src="' + escapeAttr(track.src) + '" type="' + escapeAttr(track.format || 'audio/mp4') + '">当前浏览器不支持音频播放。</audio></div>';
+  }
+
+  function audioPanel(ch) {
+    if (!ch.audioTracks || !ch.audioTracks.length) return '';
+    return '<section class="audio-panel"><div class="panel-head"><h2>本卷音频</h2><span class="count">按卷播放</span></div><p class="audio-note">' + escapeHtml(ch.audioNote || '音频由站主提供。') + '</p><div class="audio-list">' + ch.audioTracks.map(function (track) { return audioControl(track, false); }).join('') + '</div></section>';
+  }
+
   function foundationLinks(term) {
     term = FOUNDATION_TERM_ALIASES[term] || term;
     var matches=FOUNDATIONS.filter(function(t){return t.terms.indexOf(term)!==-1;});
@@ -517,6 +527,7 @@
 
     if (ch.intro) html += '<div class="chapter-intro">' + paragraphs(ch.intro) + '</div>';
     html += '<details class="edition-note"><summary>版本与收录范围 · '+escapeHtml(ch.author)+'</summary><p>'+escapeHtml(ch.edition)+'</p><a href="'+escapeAttr(ch.source)+'" target="_blank" rel="noopener noreferrer">核对来源 ↗</a></details>';
+    html += audioPanel(ch);
 
     if(ch.relatedSlugs){html+='<nav class="related-books" aria-label="相关经疏">'+ch.relatedSlugs.map(function(slug){var ri=BOOK.chapters.findIndex(function(x){return x.slug===slug;});return '<a class="chip" href="#/ch/'+ri+'">'+escapeHtml(BOOK.chapters[ri].title)+' →</a>';}).join('')+'</nav><p class="source-note">CBETA '+escapeHtml(ch.sourceCode)+' · '+escapeHtml(ch.revision)+' · <a href="CBETA-LICENSE.md" target="_blank" rel="noopener noreferrer">非营利流通说明</a> · <a href="'+escapeAttr(ch.sourceFile)+'" target="_blank" rel="noopener noreferrer">完整XML底本</a></p>';}
     if(ch.sections.length>25)html+='<label class="toc-filter">查找目录<input type="search" id="tocSearch" placeholder="输入卷名或品名，例如：第十、入法界" aria-label="查找本书目录"></label>';
@@ -590,6 +601,7 @@
     html += '</header>';
 
     html += '<div class="reading-context"><div><span class="eyebrow">阅读说明</span><p>' + escapeHtml(sec.intro) + '</p></div><label class="passage-picker">段落目录<select id="passageSelect" aria-label="选择经文段落">' + sec.pairs.map(function(p,i){return '<option value="'+i+'"'+(i===pr.pos?' selected':'')+'>'+String(i+1).padStart(2,'0')+' · '+escapeHtml(p.label)+'</option>';}).join('') + (pr.pos >= sec.pairs.length ? '<option value="'+sec.pairs.length+'" selected>本节已读完</option>' : '') + '</select></label></div>';
+    if (sec.audio) html += '<div class="reader-audio">' + audioControl(sec.audio, true) + '</div>';
 
 
     var allRevealed = sec.pairs.every(function (_, i) { return pr.revealed[i]; });

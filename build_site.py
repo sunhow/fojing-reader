@@ -4,7 +4,7 @@ from pathlib import Path
 import hashlib,shutil,re,runpy,json
 ROOT=Path(__file__).resolve().parent
 runpy.run_path(str(ROOT/'build.py'),run_name='__main__')
-assets=['index.html','manifest.webmanifest','style.css','library.css','config.js','app.js','book.js','foundations.js','icon-192.png','icon-512.png','icon-maskable-512.png','apple-touch-icon.png','favicon-32.png']
+assets=['audio-fahua-preface.m4a','audio-fahua-vol-01.m4a','audio-fahua-vol-02.m4a','audio-fahua-vol-03.m4a','audio-fahua-vol-04.m4a','audio-fahua-vol-05.m4a','audio-fahua-vol-06.m4a','audio-fahua-vol-07.m4a','index.html','manifest.webmanifest','style.css','library.css','config.js','app.js','book.js','foundations.js','icon-192.png','icon-512.png','icon-maskable-512.png','apple-touch-icon.png','favicon-32.png']
 # A fresh HTML document must bypass assets held by an older service worker.
 # Derive URLs from content so repeated builds are stable and offline precaching agrees.
 versioned={name:name+'?v='+hashlib.sha256((ROOT/name).read_bytes()).hexdigest()[:14] for name in assets if name!='index.html'}

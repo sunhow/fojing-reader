@@ -90,3 +90,10 @@ GitHub Pages → Deploy from a branch → `main` → `/(root)`。仓库根目录
 电子底本采用CBETA正式XML P5，完整XML与版权头随站点保留；使用条件为非营利，详见[CBETA-LICENSE.md](CBETA-LICENSE.md)。古籍原作、CBETA现代电子整理、本网站自撰白话及软件分别说明授权，不一概套用MIT或CC BY-SA 4.0。
 
 新增四个 `*-source.json` 保存原文，`originals-manifest.json`保存完整性清单。编辑后运行 `python3 build_site.py`。原典目录的分段标题为阅读定位，不改变疏文；来源页行可供核查。
+
+
+## 法华经音频
+
+《妙法莲华经》书目页和对应品的阅读页新增站主提供的音频播放器：弘传序一段、七卷各一段。网页使用 AAC/M4A 播放副本，原始 MP3 不上传；浏览器只在读者点击播放时加载。音频文件较大，首次播放和移动网络下可能需要等待缓冲。
+
+音频版权与传播责任由上传者确认；本项目只将用户提供的文件按其指定用途放入自己的公开 GitHub Pages 网站。
