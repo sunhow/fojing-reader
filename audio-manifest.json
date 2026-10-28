@@ -1,0 +1,85 @@
+{
+  "encoding": "AAC 32kbps, M4A; prepared from original MP3 using macOS afconvert",
+  "tracks": [
+    {
+      "id": "preface",
+      "sourceName": "妙法莲华经弘传序.mp3",
+      "sourceSHA256": "51c550b0b150f6ff1950a309bc4585f0702e13e7aa4197debfec4c7af5b497ae",
+      "webFile": "audio-fahua-preface.m4a",
+      "webSHA256": "49861244e41d6a19e8da05060a1b8192b27cc824120649838a85285219b1fbe6",
+      "sourceDuration": 278.07345,
+      "webDuration": 278.0,
+      "bytes": 1091553
+    },
+    {
+      "id": "vol-01",
+      "sourceName": "1《妙法莲华经·第一卷》.mp3",
+      "sourceSHA256": "4212e293eade5a39d4fe0a965eafb79bc3c37fef165a8838712b379dd001634e",
+      "webFile": "audio-fahua-vol-01.m4a",
+      "webSHA256": "5b2ef21ac42a08da43a7a0b17eec5e1bd2a2ee170723e1c6788a8275e8f36e5d",
+      "sourceDuration": 4763.82035,
+      "webDuration": 4763.75,
+      "bytes": 18928103
+    },
+    {
+      "id": "vol-02",
+      "sourceName": "2《妙法莲华经·第二卷》.mp3",
+      "sourceSHA256": "a8f8611dca45aebb3773302c7ed02dc75a78c71c8a8ab1fb10838fe1a3f915ce",
+      "webFile": "audio-fahua-vol-02.m4a",
+      "webSHA256": "6577a913f98ce353ed6797ae9b9f3d73d03b141cfbc40b258f8b6df3f45c8297",
+      "sourceDuration": 4725.31585,
+      "webDuration": 4725.25,
+      "bytes": 18934372
+    },
+    {
+      "id": "vol-03",
+      "sourceName": "3《妙法莲华经·第三卷》.mp3",
+      "sourceSHA256": "5af140eb1d627ebdcc472f610a148e1b60786e8f286dc13f3de418be55914d1f",
+      "webFile": "audio-fahua-vol-03.m4a",
+      "webSHA256": "a306e58ec3441f30ea2152d713dbe53f5ca3af451a5cb770a86e8ff0603b8f61",
+      "sourceDuration": 4314.07015,
+      "webDuration": 4314.0,
+      "bytes": 17263416
+    },
+    {
+      "id": "vol-04",
+      "sourceName": "4《妙法莲华经·第四卷》.mp3",
+      "sourceSHA256": "a016fedc31f15ec633712400c379e50ab43d4ff5d0c9d35a37f322eec034ca66",
+      "webFile": "audio-fahua-vol-04.m4a",
+      "webSHA256": "aadf2e0a3963bceaf8c416c304149e2f617622313f9acd35883b6090528d1100",
+      "sourceDuration": 5098.1877,
+      "webDuration": 5098.125,
+      "bytes": 20470034
+    },
+    {
+      "id": "vol-05",
+      "sourceName": "5《妙法莲华经·第五卷》.mp3",
+      "sourceSHA256": "314fda3853c5710e8d3924a678f58e4675652f7ca2f189c285c08e8fab2c2170",
+      "webFile": "audio-fahua-vol-05.m4a",
+      "webSHA256": "c21f7488c5cd1bc18832d3314df3a8770507962d231135f992e55c4d0f4328cd",
+      "sourceDuration": 4818.0767,
+      "webDuration": 4818.0,
+      "bytes": 19327399
+    },
+    {
+      "id": "vol-06",
+      "sourceName": "6《妙法莲华经·第六卷》.mp3",
+      "sourceSHA256": "e231ffc2f7a216c048028630eb5bc1a669288803d597a2f5ab254ab3fd3eedc3",
+      "webFile": "audio-fahua-vol-06.m4a",
+      "webSHA256": "d0e38fade8faf727310e3eabccadca2ce42ee16470a6777ef56cdd4339e35cef",
+      "sourceDuration": 4718.31505,
+      "webDuration": 4718.25,
+      "bytes": 18913239
+    },
+    {
+      "id": "vol-07",
+      "sourceName": "7《妙法莲华经·第七卷》.mp3",
+      "sourceSHA256": "aeb0cc0b28a348fce4314643b5586e062b03e6ef6822f658ab8113615eb33d70",
+      "webFile": "audio-fahua-vol-07.m4a",
+      "webSHA256": "d20314cfd1923a52026ec40e6199a7ef81c97b1152dd030f4b335a53028cf244",
+      "sourceDuration": 4352.2612,
+      "webDuration": 4352.1875,
+      "bytes": 17443424
+    }
+  ]
+}

@@ -322,7 +322,7 @@
       "source": "https://cbetaonline.dila.edu.tw/zh/T09n0262",
       "readingMode": "original",
       "contents": "药王菩萨本事品",
-      "audioTrackId": "vol-07"
+      "audioTrackId": "vol-06"
     },
     {
       "intro": "七卷二十八品 · 经文原典。妙音菩萨品第二十四，保留底本原文与偈颂；本页按阅读长度分段。",
@@ -7858,50 +7858,65 @@
       "title": "《妙法莲华经弘传序》",
       "src": "audio-fahua-preface.m4a",
       "format": "audio/mp4",
-      "note": "用户提供的音频，已转为适合网页播放的 AAC/M4A 副本。"
+      "note": "录音由站主提供",
+      "duration": 278.0
     },
     {
       "id": "vol-01",
       "title": "《妙法莲华经》第1卷",
       "src": "audio-fahua-vol-01.m4a",
-      "format": "audio/mp4"
+      "format": "audio/mp4",
+      "duration": 4763.75,
+      "note": "录音由站主提供"
     },
     {
       "id": "vol-02",
       "title": "《妙法莲华经》第2卷",
       "src": "audio-fahua-vol-02.m4a",
-      "format": "audio/mp4"
+      "format": "audio/mp4",
+      "duration": 4725.25,
+      "note": "录音由站主提供"
     },
     {
       "id": "vol-03",
       "title": "《妙法莲华经》第3卷",
       "src": "audio-fahua-vol-03.m4a",
-      "format": "audio/mp4"
+      "format": "audio/mp4",
+      "duration": 4314.0,
+      "note": "录音由站主提供"
     },
     {
       "id": "vol-04",
       "title": "《妙法莲华经》第4卷",
       "src": "audio-fahua-vol-04.m4a",
-      "format": "audio/mp4"
+      "format": "audio/mp4",
+      "duration": 5098.12,
+      "note": "录音由站主提供"
     },
     {
       "id": "vol-05",
       "title": "《妙法莲华经》第5卷",
       "src": "audio-fahua-vol-05.m4a",
-      "format": "audio/mp4"
+      "format": "audio/mp4",
+      "duration": 4818.0,
+      "note": "录音由站主提供"
     },
     {
       "id": "vol-06",
       "title": "《妙法莲华经》第6卷",
       "src": "audio-fahua-vol-06.m4a",
-      "format": "audio/mp4"
+      "format": "audio/mp4",
+      "duration": 4718.25,
+      "note": "录音由站主提供"
     },
     {
       "id": "vol-07",
       "title": "《妙法莲华经》第7卷",
       "src": "audio-fahua-vol-07.m4a",
-      "format": "audio/mp4"
+      "format": "audio/mp4",
+      "duration": 4352.19,
+      "note": "录音由站主提供"
     }
   ],
-  "audioNote": "音频由站主提供；网页使用 AAC/M4A 播放副本，原始MP3不上传。"
+  "audioNote": "弘传序与七卷诵读。各品使用所属卷的完整音频，未设置品内起始时间；可拖动进度条选择位置。"
 }

@@ -395,6 +395,7 @@
       return;
     }
 
+    var audioSnapshot=$$('audio[data-track]').map(function(el){return {el:el,src:el.dataset.track,playing:!el.paused&&!el.ended};});
     if (parts.length === 0) renderHome(view);
     else if (parts[0] === 'ch') renderChapter(view, parseInt(parts[1], 10));
     else if (parts[0] === 'read') renderReader(view, parseInt(parts[1], 10), parseInt(parts[2], 10));
@@ -404,6 +405,8 @@
     else if (parts[0] === 'basics') renderFoundations(view,parts[1]);
     else if (parts[0] === 'passage') { openPassageById(parts[1]); return; }
     else renderHome(view);
+
+    bindRecordedAudio(audioSnapshot);
 
     // 高亮导航
     var key = parts[0] === 'read' || parts[0] === 'ch' ? 'home' : (parts[0] || 'home');
@@ -439,12 +442,40 @@
 
   function audioControl(track, compact) {
     if (!track || !track.src) return '';
-    return '<div class="audio-control' + (compact ? ' compact' : '') + '"><div class="audio-meta"><strong>' + escapeHtml(track.title) + '</strong><small>网页音频 · 站主提供</small></div><audio controls preload="none"><source src="' + escapeAttr(track.src) + '" type="' + escapeAttr(track.format || 'audio/mp4') + '">当前浏览器不支持音频播放。</audio></div>';
+    var mins=Math.floor((track.duration||0)/60),secs=Math.floor((track.duration||0)%60);
+    return '<div class="audio-control'+(compact?' compact':'')+'"><div class="audio-meta"><strong>'+escapeHtml(track.title)+'</strong><small>整卷录音'+(track.duration?' · '+mins+':'+String(secs).padStart(2,'0'):'')+'</small></div><audio controls preload="none" data-track="'+escapeAttr(track.src)+'" aria-label="'+escapeAttr(track.title)+'音频"><source src="'+escapeAttr(track.src)+'" type="'+escapeAttr(track.format||'audio/mp4')+'">当前浏览器不支持音频播放。</audio><button class="btn small ghost audio-toggle" type="button" aria-label="播放'+escapeAttr(track.title)+'">播放</button><span class="audio-error" role="status" hidden>音频暂时无法加载，请检查网络后重试。</span></div>';
   }
 
   function audioPanel(ch) {
     if (!ch.audioTracks || !ch.audioTracks.length) return '';
-    return '<section class="audio-panel"><div class="panel-head"><h2>本卷音频</h2><span class="count">按卷播放</span></div><p class="audio-note">' + escapeHtml(ch.audioNote || '音频由站主提供。') + '</p><div class="audio-list">' + ch.audioTracks.map(function (track) { return audioControl(track, false); }).join('') + '</div></section>';
+    return '<section class="audio-panel"><div class="panel-head"><h2>听诵法华经</h2><span class="count">弘传序 · 七卷录音</span></div><p class="audio-note">'+escapeHtml(ch.audioNote)+'</p><div class="audio-list">'+ch.audioTracks.map(function(track){return audioControl(track,false);}).join('')+'</div></section>';
+  }
+
+  // Reuse matching media elements across route renders, so reading the next paragraph
+  // or changing text display does not restart a recording from the beginning.
+  function bindRecordedAudio(previous) {
+    var keep=[];
+    $$('audio[data-track]').forEach(function(fresh){
+      var old=previous.find(function(item){return item.src===fresh.dataset.track;});
+      var player=fresh;
+      if(old){fresh.replaceWith(old.el);player=old.el;keep.push(old);}
+      var box=player.closest('.audio-control'),button=$('.audio-toggle',box),error=$('.audio-error',box);
+      function update(){button.textContent=player.paused?'播放':'暂停';button.setAttribute('aria-label',(player.paused?'播放':'暂停')+$('.audio-meta strong',box).textContent);}
+      player.onplay=function(){
+        $$('audio[data-track]').forEach(function(other){if(other!==player)other.pause();});
+        if('speechSynthesis' in window)window.speechSynthesis.cancel();
+        error.hidden=true;update();
+      };
+      player.onpause=update;player.onended=update;player.onerror=function(){error.hidden=false;update();};
+      button.onclick=function(){
+        if(!player.paused){player.pause();return;}
+        if(player.error)player.load();
+        player.play().catch(function(){error.hidden=false;update();});
+      };
+      update();
+      if(old&&old.playing)player.play().catch(function(){update();});
+    });
+    previous.forEach(function(item){if(keep.indexOf(item)===-1)item.el.pause();});
   }
 
   function foundationLinks(term) {
@@ -591,7 +622,7 @@
     html += '<div class="seg-control">' +
             '<button data-mode="focus" class="' + (state.mode === 'focus' ? 'on' : '') + '">逐段精读</button>' +
             '<button data-mode="flow" class="' + (state.mode === 'flow' ? 'on' : '') + '">'+(originalOnly?'通篇原文':'通篇对照')+'</button></div>';
-    html += '<button class="btn small ghost" id="speakSection">朗读</button>';
+    html += '<button class="btn small ghost" id="speakSection">'+(ch.audioTracks?'机器朗读':'朗读')+'</button>';
     if (state.mode === 'flow' && !originalOnly) html += '<button class="btn small ghost" id="toggleAll">全部展开</button>';
     html += '</div>';
 
@@ -601,7 +632,7 @@
     html += '</header>';
 
     html += '<div class="reading-context"><div><span class="eyebrow">阅读说明</span><p>' + escapeHtml(sec.intro) + '</p></div><label class="passage-picker">段落目录<select id="passageSelect" aria-label="选择经文段落">' + sec.pairs.map(function(p,i){return '<option value="'+i+'"'+(i===pr.pos?' selected':'')+'>'+String(i+1).padStart(2,'0')+' · '+escapeHtml(p.label)+'</option>';}).join('') + (pr.pos >= sec.pairs.length ? '<option value="'+sec.pairs.length+'" selected>本节已读完</option>' : '') + '</select></label></div>';
-    if (sec.audio) html += '<div class="reader-audio">' + audioControl(sec.audio, true) + '</div>';
+    if (sec.audio) html += '<div class="reader-audio">' + audioControl(sec.audio, true) + '<p class="audio-note">本品使用所属卷的完整录音；未标注本品起点，可拖动进度条定位。</p></div>';
 
 
     var allRevealed = sec.pairs.every(function (_, i) { return pr.revealed[i]; });
@@ -1060,6 +1091,7 @@
 
       // 朗读（整节）
       if (t.closest('#speakSection') && state.reader) {
+        $$('audio[data-track]').forEach(function(player){player.pause();});
         var sec2 = BOOK.chapters[state.reader.ci].sections[state.reader.si];
         speak(sec2.pairs.map(function (x) { return settings.script === 'traditional' ? x.traditional : x.orig; }).join(''));
         return;

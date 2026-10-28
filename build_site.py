@@ -4,7 +4,8 @@ from pathlib import Path
 import hashlib,shutil,re,runpy,json
 ROOT=Path(__file__).resolve().parent
 runpy.run_path(str(ROOT/'build.py'),run_name='__main__')
-assets=['audio-fahua-preface.m4a','audio-fahua-vol-01.m4a','audio-fahua-vol-02.m4a','audio-fahua-vol-03.m4a','audio-fahua-vol-04.m4a','audio-fahua-vol-05.m4a','audio-fahua-vol-06.m4a','audio-fahua-vol-07.m4a','index.html','manifest.webmanifest','style.css','library.css','config.js','app.js','book.js','foundations.js','icon-192.png','icon-512.png','icon-maskable-512.png','apple-touch-icon.png','favicon-32.png']
+media=sorted(p.name for p in ROOT.glob('audio-fahua-*.m4a'))
+assets=['index.html','manifest.webmanifest','style.css','library.css','config.js','app.js','book.js','foundations.js','icon-192.png','icon-512.png','icon-maskable-512.png','apple-touch-icon.png','favicon-32.png']
 # A fresh HTML document must bypass assets held by an older service worker.
 # Derive URLs from content so repeated builds are stable and offline precaching agrees.
 versioned={name:name+'?v='+hashlib.sha256((ROOT/name).read_bytes()).hexdigest()[:14] for name in assets if name!='index.html'}
@@ -28,7 +29,7 @@ out=ROOT/'dist'
 if out.exists():shutil.rmtree(out)
 out.mkdir()
 source_files=['source-'+code+'.xml' for code in ['T09n0262','T34n1718','T10n0279','T35n1735']]
-for item in assets+['sw.js','LICENSE','SOURCES.md','CBETA-LICENSE.md']+source_files:
+for item in assets+['sw.js','LICENSE','SOURCES.md','CBETA-LICENSE.md']+source_files+media+['audio-manifest.json']:
  p=ROOT/item
  if p.is_dir():shutil.copytree(p,out/item)
  else:shutil.copy2(p,out/item)

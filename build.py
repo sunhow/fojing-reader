@@ -28,6 +28,9 @@ for b in source:
   if k in b:ch[k]=b[k]
  if 'audioTracks' in b:ch['audioTracks']=b['audioTracks']
  if 'audioNote' in b:ch['audioNote']=b['audioNote']
+ if b.get('audioTracks'):
+  assert len({a['id'] for a in b['audioTracks']})==len(b['audioTracks'])
+  assert all((ROOT/a['src']).is_file() and a.get('duration',0)>0 for a in b['audioTracks'])
  ch['passageCount']=len(b['paragraphs']);ch['sections']=[];covered=[]
  for si,(a,z,title) in enumerate(b['groups'],1):
   selected=b['paragraphs'][a-1:z];covered.extend(p['id'] for p in selected)
@@ -36,7 +39,7 @@ for b in source:
   notes=[] if b.get('readingMode')=='original' else [n for n in glossary if n['term'] in corpus]
   sec={'id':b['slug']+f'-s{si:02}','number':si,'title':title,'name':title,'intro':b['subtitle']+'。本节依原文顺序收录 '+str(len(pairs))+' 段，可在段落目录中直接跳转。','source':b['source'],'pairs':pairs,'notes':notes}
   if b.get('sectionMetadata'):sec.update(b['sectionMetadata'][si-1])
-  if b.get('audioTracks') and sec.get('audioTrackId'):sec['audio']=next((a for a in b['audioTracks'] if a['id']==sec['audioTrackId']),None)
+  if b.get('audioTracks') and sec.get('audioTrackId'):sec['audio']=next(a for a in b['audioTracks'] if a['id']==sec['audioTrackId'])
   ch['sections'].append(sec)
  assert covered==m['ids'],b['slug']+' group coverage mismatch'
  BOOK['chapters'].append(ch)
