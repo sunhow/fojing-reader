@@ -56,7 +56,7 @@ for b in originals:
  assert all(related in [x['slug'] for x in source] for related in b['relatedSlugs'])
 assert len({s['id'] for c in BOOK['chapters'] for s in c['sections']})==239
 assert len({p['id'] for c in BOOK['chapters'] for s in c['sections'] for p in s['pairs']})==8060
-(ROOT/'book.js').write_text('window.BOOK = '+json.dumps(BOOK,ensure_ascii=False,separators=(',',':'))+';\n')
+
 foundations=json.loads((ROOT/'foundations-source.json').read_text())
 assert len(foundations)==12 and len({t['id'] for t in foundations})==12
 ids={t['id'] for t in foundations}; passagerefs={}
@@ -70,3 +70,16 @@ for t in foundations:
  t['references']=[passagerefs[x] for x in t['readings']]
 (ROOT/'foundations.js').write_text('window.FOUNDATIONS = '+json.dumps(foundations,ensure_ascii=False,separators=(',',':'))+';\n')
 print('Validated 13 books, 239 sections, 359 translated passages + 7701 original-only passages, source XML hashes and linked guides.')
+
+# Keep the shelf and stable paragraph IDs lightweight; large original books load on demand.
+import copy
+catalog=copy.deepcopy(BOOK)
+for ci,ch in enumerate(BOOK['chapters']):
+ if ch.get('readingMode')!='original':continue
+ name='reader-'+ch['slug']+'.json'
+ payload=json.dumps(ch,ensure_ascii=False,separators=(',',':'))+'\n'
+ (ROOT/name).write_text(payload)
+ catalog['chapters'][ci]['contentUrl']=name+'?v='+hashlib.sha256(payload.encode()).hexdigest()[:14]
+ for sec in catalog['chapters'][ci]['sections']:
+  sec['pairs']=[{'id':p['id']} for p in sec['pairs']]
+(ROOT/'book.js').write_text('window.BOOK = '+json.dumps(catalog,ensure_ascii=False,separators=(',',':'))+';\n')

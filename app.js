@@ -107,6 +107,28 @@
   function orderedChapters() {
     return BOOK.readingOrder.map(function(ci){return {ch:BOOK.chapters[ci],ci:ci};});
   }
+  var BOOK_LOADS = {};
+  function ensureBook(ci) {
+    var ch=BOOK.chapters[ci];
+    if(!ch || !ch.contentUrl || ch.contentLoaded)return Promise.resolve(ch);
+    if(BOOK_LOADS[ci])return BOOK_LOADS[ci];
+    var controller=new AbortController(),timer=setTimeout(function(){controller.abort();},30000);
+    BOOK_LOADS[ci]=fetch(ch.contentUrl,{signal:controller.signal}).then(function(response){
+      if(!response.ok)throw new Error('HTTP '+response.status);
+      return response.json();
+    }).then(function(data){
+      if(data.slug!==ch.slug || data.sections.length!==ch.sections.length)throw new Error('内容版本不一致');
+      data.sections.forEach(function(sec,i){
+        var expected=ch.sections[i];
+        if(sec.id!==expected.id || sec.pairs.length!==expected.pairs.length || sec.pairs.some(function(pair,j){return pair.id!==expected.pairs[j].id || typeof pair.orig!=='string';}))throw new Error('内容校验失败');
+      });
+      data.sections.forEach(function(sec,i){Object.assign(ch.sections[i],sec);});
+      ch.contentLoaded=true;SEARCH_INDEX=null;return ch;
+    }).finally(function(){clearTimeout(timer);delete BOOK_LOADS[ci];});
+    return BOOK_LOADS[ci];
+  }
+  var ROUTE_REVISION=0;
+  var PENDING_AUDIO=[];
   var FLAT_CACHE = null;
   function flatSections() {
     if (FLAT_CACHE) return FLAT_CACHE;
@@ -381,6 +403,7 @@
   function navigate(hash) { location.hash = hash; }
 
   function route() {
+    var revision=++ROUTE_REVISION;
     hidePopover();
     var h = (location.hash || '#/').replace(/^#/, '');
     var parts = h.split('/').filter(function (x) { return x !== ''; });
@@ -395,7 +418,25 @@
       return;
     }
 
-    var audioSnapshot=$$('audio[data-track]').map(function(el){return {el:el,src:el.dataset.track,playing:!el.paused&&!el.ended};});
+    if(parts[0]==='read'){
+      var ci=Number(parts[1]),ch=BOOK.chapters[ci];
+      if(ch && ch.contentUrl && !ch.contentLoaded){
+        var oldAudio=$$('audio[data-track]').map(function(player){var item={el:player,src:player.dataset.track,playing:!player.paused&&!player.ended};player.pause();return item;});
+        if(oldAudio.length)PENDING_AUDIO=oldAudio;
+        state.reader=null;
+        view.innerHTML='<section class="empty" role="status"><h2>正在载入'+escapeHtml(ch.title)+'</h2><p>首次打开需要加载本书原文，请稍候。</p><a class="btn" href="#/ch/'+ci+'">返回本书目录</a></section>';
+        document.body.classList.remove('focus-mode','original-reader','in-reader');
+        ensureBook(ci).then(function(){if(revision===ROUTE_REVISION)route();}).catch(function(){
+          if(revision!==ROUTE_REVISION)return;
+          view.innerHTML='<section class="empty" role="alert"><h2>本书暂未加载完成</h2><p>可能是网络较慢或连接中断。可以重试，笔记与进度会保留。</p><button class="btn primary" id="retryBook">重新加载</button> <a class="btn" href="#/ch/'+ci+'">返回目录</a></section>';
+          $('#retryBook').onclick=route;
+        });
+        return;
+      }
+    }
+
+    var audioSnapshot=PENDING_AUDIO.concat($$('audio[data-track]').map(function(el){return {el:el,src:el.dataset.track,playing:!el.paused&&!el.ended};}));
+    PENDING_AUDIO=[];
     if (parts.length === 0) renderHome(view);
     else if (parts[0] === 'ch') renderChapter(view, parseInt(parts[1], 10));
     else if (parts[0] === 'read') renderReader(view, parseInt(parts[1], 10), parseInt(parts[2], 10));
@@ -924,12 +965,25 @@
     return res;
   }
 
-  function renderSearchResults(q) {
+  var SEARCH_REVISION=0;
+  async function renderSearchResults(q) {
+    var revision=++SEARCH_REVISION;
     var box = $('#searchResults');
     if (!q.trim()) {
       box.innerHTML = '<p class="search-hint">输入关键词，例如「知足」「十善」「无所住」「回向」。</p>';
       return;
     }
+    var missing=BOOK.chapters.map(function(ch,ci){return {ch:ch,ci:ci};}).filter(function(e){return e.ch.contentUrl&&!e.ch.contentLoaded;});
+    if(missing.length){
+      box.innerHTML='<p class="search-hint" role="status">正在准备全文搜索，首次搜索需加载原典内容…</p>';
+      var results=await Promise.allSettled(missing.map(function(e){return ensureBook(e.ci);}));
+      if(revision!==SEARCH_REVISION)return;
+      if(results.some(function(result){return result.status==='rejected';})){
+        box.innerHTML='<p class="search-hint" role="alert">部分原典尚未加载完成，暂时不能提供完整搜索。</p><button class="btn" id="retrySearch">重试全文搜索</button>';
+        $('#retrySearch').onclick=function(){renderSearchResults(q);};return;
+      }
+    }
+    if(revision!==SEARCH_REVISION)return;
     var res = doSearch(q);
     if (!res.length) {
       box.innerHTML = '<p class="search-hint">没有找到「' + escapeHtml(q) + '」。换个词试试？</p>';
@@ -1189,9 +1243,9 @@
     if (!('serviceWorker' in navigator)) return;
     var local = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
     if (location.protocol !== 'https:' && !local) return; // file:// 下不注册
-    window.addEventListener('load', function () {
-      navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
-    });
+    function register(){navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});}
+    if(document.readyState==='complete')register();
+    else window.addEventListener('load',register,{once:true});
   }
 
   // One-time merge on the shared GitHub Pages origin. Never mutate the old site.

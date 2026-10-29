@@ -47,7 +47,7 @@
     </div>
   </header>
 
-  <main id="view" class="view" tabindex="-1"></main>
+  <main id="view" class="view" tabindex="-1"><section class="empty" id="startupStatus" role="status"><h1>佛经精读</h1><p id="startupMessage">正在加载书架，请稍候…</p><button class="btn" type="button" onclick="location.reload()">重新加载</button><p>加载不会清除本机笔记与阅读进度。</p><noscript>请启用浏览器 JavaScript 后阅读。</noscript></section></main>
 
   <footer class="footer">
     <p>佛经精读 · 原文 · 白话 · 札记</p>
@@ -154,10 +154,11 @@
 <div class="popover" id="popover" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-<script src="config.js?v=0cf3df69ab80fa"></script>
-<script src="book.js?v=b724f2ed01fe70"></script>
-<script src="foundations.js?v=f1eaa00712d9f0"></script>
-<script src="app.js?v=72893e51720160"></script>
+<script type="application/json" data-src="config.js?v=0cf3df69ab80fa"></script>
+<script type="application/json" data-src="book.js?v=3af08740f65e1a"></script>
+<script type="application/json" data-src="foundations.js?v=f1eaa00712d9f0"></script>
+<script type="application/json" data-src="app.js?v=ecdc11a87aa428"></script>
+<script src="loader.js?v=13aa088e39fec8"></script>
 <!-- Owner-only reports in Cloudflare Web Analytics. The site token is public, not an API key. -->
 <script>
 (function () {
