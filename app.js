@@ -413,8 +413,7 @@
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 
     if (!BOOK) {
-      view.innerHTML = '<div class="empty"><h2>内容数据还没生成</h2>' +
-        '<p>请先在项目目录运行 <code>python3 build.py</code> 生成 <code>book.js</code>。</p></div>';
+      showStartupError();
       return;
     }
 
@@ -1332,7 +1331,13 @@
     document.addEventListener('keydown',trap);
   }
 
+  function showStartupError() {
+    $('#view').innerHTML='<section class="empty" role="alert"><h1>书架暂未加载完成</h1><p>请检查网络后点击重试。你的笔记与阅读进度会保留。</p><button class="btn primary" id="retryStartup">重新加载书架</button></section>';
+    $('#retryStartup').onclick=function(){location.reload();};
+  }
+
   function boot() {
+    if(!BOOK || !CONFIG){showStartupError();return;}
     migrateDizang();
     applySettings();
     bindOnce();
